@@ -105,6 +105,16 @@ fieldset.age-group legend{font-weight:600;padding:0}
 .field-hint{font-size:.82rem;font-weight:400;opacity:.8;line-height:1.4}
 .age-add{justify-self:start;border:1px solid #F2B8CB;background:transparent;color:#F7F0E3;padding:10px 14px;border-radius:12px;font:600 .95rem var(--sans);cursor:pointer}
 .age-add[hidden]{display:none}
+.combo-field{display:grid;gap:6px;font-weight:500;font-size:.95rem;min-width:0}
+.combo-wrap{position:relative}
+.combo-wrap input{padding-right:50px}
+.combo-toggle{position:absolute;right:6px;top:6px;width:42px;height:calc(100% - 12px);border:0;border-radius:10px;background:transparent;color:#17212C;font-size:1.2rem;cursor:pointer}
+.combo-toggle:disabled{opacity:.4;cursor:not-allowed}
+.combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;max-height:min(42vh,300px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#F7F0E3;color:#17212C;border:1px solid rgba(23,33,44,.16);border-radius:14px;padding:5px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.combo-list[hidden]{display:none!important}
+.combo-option{display:block;width:100%;padding:12px 14px;border:0;border-radius:10px;background:transparent;color:#17212C;text-align:left;font:400 1rem var(--sans);cursor:pointer}
+.combo-option:hover,.combo-option:focus{background:rgba(23,33,44,.1);outline:none}
+.combo-empty{margin:0;padding:12px 14px;font-size:.9rem;opacity:.75}
 .quote .btn{background:#F7F0E3;color:#641D35;justify-self:start}
 /* reviews */
 .revsum{font-size:1.15rem;margin:-10px 0 22px}
@@ -193,11 +203,25 @@ h2.rv{transform:translateX(-30px)}
 <h2>Peça sua cotação.</h2>
 <form id="f">
 <label>Nome<input name="nome" required autocomplete="name"></label>
-<label>Estado<select name="uf" id="uf" required autocomplete="address-level1">
-<option value="">Selecione o estado</option>
-<option value="AC">Acre (AC)</option><option value="AL">Alagoas (AL)</option><option value="AP">Amapá (AP)</option><option value="AM">Amazonas (AM)</option><option value="BA">Bahia (BA)</option><option value="CE">Ceará (CE)</option><option value="DF">Distrito Federal (DF)</option><option value="ES">Espírito Santo (ES)</option><option value="GO">Goiás (GO)</option><option value="MA">Maranhão (MA)</option><option value="MT">Mato Grosso (MT)</option><option value="MS">Mato Grosso do Sul (MS)</option><option value="MG">Minas Gerais (MG)</option><option value="PA">Pará (PA)</option><option value="PB">Paraíba (PB)</option><option value="PR">Paraná (PR)</option><option value="PE">Pernambuco (PE)</option><option value="PI">Piauí (PI)</option><option value="RJ">Rio de Janeiro (RJ)</option><option value="RN">Rio Grande do Norte (RN)</option><option value="RS">Rio Grande do Sul (RS)</option><option value="RO">Rondônia (RO)</option><option value="RR">Roraima (RR)</option><option value="SC">Santa Catarina (SC)</option><option value="SP">São Paulo (SP)</option><option value="SE">Sergipe (SE)</option><option value="TO">Tocantins (TO)</option>
-</select></label>
-<label>Cidade<input name="cidade" id="cidade" type="search" required autocomplete="address-level2" list="cidades-list" placeholder="Escolha o estado primeiro" disabled aria-describedby="cidade-status"><datalist id="cidades-list"></datalist><span id="cidade-status" class="field-hint" aria-live="polite">Selecione um estado para ver as cidades.</span></label>
+<div class="combo-field">
+<label for="estado">Estado</label>
+<div class="combo-wrap" id="state-combo">
+<input id="estado" type="search" required autocomplete="off" placeholder="Digite o estado ou toque para escolher" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="estados-listbox" aria-expanded="false" aria-describedby="estado-status">
+<button class="combo-toggle" id="toggle-estados" type="button" aria-label="Abrir lista de estados" aria-controls="estados-listbox" aria-expanded="false">▾</button>
+<div class="combo-list" id="estados-listbox" role="listbox" hidden></div>
+</div>
+<input type="hidden" name="uf" id="uf">
+<span id="estado-status" class="field-hint" aria-live="polite">Digite o nome ou a sigla, ou toque na seta para navegar pela lista.</span>
+</div>
+<div class="combo-field">
+<label for="cidade">Cidade</label>
+<div class="combo-wrap" id="city-combo">
+<input name="cidade" id="cidade" type="search" required autocomplete="address-level2" placeholder="Selecione primeiro o estado" disabled role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="cidades-listbox" aria-expanded="false" aria-describedby="cidade-status">
+<button class="combo-toggle" id="toggle-cidades" type="button" aria-label="Abrir lista de cidades" aria-controls="cidades-listbox" aria-expanded="false" disabled>▾</button>
+<div class="combo-list" id="cidades-listbox" role="listbox" hidden></div>
+</div>
+<span id="cidade-status" class="field-hint" aria-live="polite">Selecione um estado para carregar as cidades.</span>
+</div>
 <label>Quantas pessoas<select name="qtd" id="qtd" required><option>1</option><option>2</option><option>3</option><option>4</option><option>5 ou mais</option></select></label>
 <fieldset class="full age-group">
 <legend>Faixa etária de cada pessoa</legend>
@@ -205,7 +229,6 @@ h2.rv{transform:translateX(-30px)}
 <button class="age-add" id="add-age" type="button" hidden>Adicionar outra pessoa</button>
 <p class="field-hint">Selecione a faixa etária de cada pessoa. Para 5 ou mais, você pode adicionar outras.</p>
 </fieldset>
-<label>Tipo de contratação<select name="tipo"><option>Individual ou familiar</option><option>Empresarial (CNPJ)</option></select></label>
 <label class="full">Operadora de interesse<select name="op" id="op"><option>Hapvida</option><option>Bradesco Saúde</option><option>SulAmérica</option><option>Unimed</option><option>Hospital Adventista</option><option>Hospital Amazônia</option><option>Outras</option><option selected>Quero comparar</option></select></label>
 <button class="btn full" type="submit">Enviar pelo WhatsApp</button>
 </form></div></div></section>
@@ -256,18 +279,37 @@ document.querySelectorAll("[data-pick]").forEach(a=>a.addEventListener("click",(
 document.getElementById("priv").addEventListener("click",e=>e.preventDefault());
 // Faixas etárias usadas pela ANS para contratos celebrados a partir de 2004.
 const ageBands=["0 a 18 anos","19 a 23 anos","24 a 28 anos","29 a 33 anos","34 a 38 anos","39 a 43 anos","44 a 48 anos","49 a 53 anos","54 a 58 anos","59 anos ou mais"];
-const ufSelect=document.getElementById("uf"),cityInput=document.getElementById("cidade"),cityOptions=document.getElementById("cidades-list"),cityStatus=document.getElementById("cidade-status");
+const states=[
+{uf:"AC",name:"Acre"},{uf:"AL",name:"Alagoas"},{uf:"AP",name:"Amapá"},{uf:"AM",name:"Amazonas"},{uf:"BA",name:"Bahia"},{uf:"CE",name:"Ceará"},{uf:"DF",name:"Distrito Federal"},{uf:"ES",name:"Espírito Santo"},{uf:"GO",name:"Goiás"},{uf:"MA",name:"Maranhão"},{uf:"MT",name:"Mato Grosso"},{uf:"MS",name:"Mato Grosso do Sul"},{uf:"MG",name:"Minas Gerais"},{uf:"PA",name:"Pará"},{uf:"PB",name:"Paraíba"},{uf:"PR",name:"Paraná"},{uf:"PE",name:"Pernambuco"},{uf:"PI",name:"Piauí"},{uf:"RJ",name:"Rio de Janeiro"},{uf:"RN",name:"Rio Grande do Norte"},{uf:"RS",name:"Rio Grande do Sul"},{uf:"RO",name:"Rondônia"},{uf:"RR",name:"Roraima"},{uf:"SC",name:"Santa Catarina"},{uf:"SP",name:"São Paulo"},{uf:"SE",name:"Sergipe"},{uf:"TO",name:"Tocantins"}
+];
+const stateInput=document.getElementById("estado"),ufInput=document.getElementById("uf"),stateList=document.getElementById("estados-listbox"),stateCombo=document.getElementById("state-combo"),stateToggle=document.getElementById("toggle-estados");
+const cityInput=document.getElementById("cidade"),cityList=document.getElementById("cidades-listbox"),cityCombo=document.getElementById("city-combo"),cityToggle=document.getElementById("toggle-cidades"),cityStatus=document.getElementById("cidade-status");
 const locationData=fetch("/municipios-por-uf.json",{cache:"force-cache"}).then(r=>{if(!r.ok)throw new Error("Lista de cidades indisponível");return r.json()}).then(data=>data.cidadesPorUf).catch(error=>{console.error("municipalities list failed",error);return null});
-let citiesForUf=[];
-const normalizeCity=value=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
-async function loadCities(){const uf=ufSelect.value;cityInput.value="";cityInput.setCustomValidity("");cityOptions.replaceChildren();citiesForUf=[];cityInput.disabled=true;if(!uf){cityInput.placeholder="Escolha o estado primeiro";cityStatus.textContent="Selecione um estado para ver as cidades.";return}cityInput.placeholder="Carregando cidades...";cityStatus.textContent="Carregando cidades...";const data=await locationData;if(ufSelect.value!==uf)return;if(!data||!data[uf]){cityStatus.textContent="Não foi possível carregar a lista de cidades. Recarregue a página e tente novamente.";return}citiesForUf=data[uf];cityInput.disabled=false;cityInput.placeholder="Digite para buscar";cityStatus.textContent=`${citiesForUf.length} cidades disponíveis. Digite para filtrar.`}
-function filterCities(){cityOptions.replaceChildren();const raw=cityInput.value.trim();cityInput.setCustomValidity("");if(!raw){cityStatus.textContent=citiesForUf.length?`${citiesForUf.length} cidades disponíveis. Digite para filtrar.`:"Selecione um estado para ver as cidades.";return}const query=normalizeCity(raw),exact=citiesForUf.find(city=>normalizeCity(city)===query),matches=citiesForUf.filter(city=>normalizeCity(city).startsWith(query)).slice(0,30);matches.forEach(city=>{const option=document.createElement("option");option.value=city;cityOptions.append(option)});if(exact){cityInput.value=exact;cityStatus.textContent=`${exact} selecionada.`}else if(matches.length){cityInput.setCustomValidity("Escolha uma cidade da lista de sugestões.");cityStatus.textContent=`${matches.length} sugestões começando com “${raw}”. Toque em uma cidade da lista.`}else{cityInput.setCustomValidity("Nenhuma cidade encontrada nesse estado. Confira a busca.");cityStatus.textContent="Nenhuma cidade encontrada nesse estado."}}
-ufSelect.addEventListener("change",loadCities);cityInput.addEventListener("input",filterCities);cityInput.addEventListener("change",filterCities);
+let citiesForUf=[],suppressStateFocus=false,suppressCityFocus=false;
+const normalize=value=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
+function setComboOpen(input,list,toggle,open){list.hidden=!open;input.setAttribute("aria-expanded",String(open));toggle.setAttribute("aria-expanded",String(open))}
+function renderOptions(list,items,label,selectItem,emptyText){list.replaceChildren();if(!items.length){const empty=document.createElement("p");empty.className="combo-empty";empty.textContent=emptyText;list.append(empty);return}items.forEach(item=>{const option=document.createElement("button");option.type="button";option.className="combo-option";option.setAttribute("role","option");option.setAttribute("aria-selected","false");option.textContent=label(item);option.addEventListener("click",()=>selectItem(item));list.append(option)});list.scrollTop=0}
+function showStates(query=""){const q=normalize(query),matches=q?states.filter(state=>normalize(state.name).startsWith(q)||state.uf.toLowerCase().startsWith(q)):states;renderOptions(stateList,matches,state=>`${state.name} (${state.uf})`,selectState,"Nenhum estado encontrado.");setComboOpen(stateInput,stateList,stateToggle,true)}
+function showCities(query=""){const q=normalize(query),matches=q?citiesForUf.filter(city=>normalize(city).startsWith(q)):citiesForUf;renderOptions(cityList,matches,city=>city,selectCity,"Nenhuma cidade encontrada neste estado.");cityStatus.textContent=q?`${matches.length} cidades começando com “${query}”.`:`${matches.length} cidades. Toque na seta para rolar ou digite para filtrar.`;setComboOpen(cityInput,cityList,cityToggle,true)}
+function closeStateList(){setComboOpen(stateInput,stateList,stateToggle,false)}
+function closeCityList(){setComboOpen(cityInput,cityList,cityToggle,false)}
+function resetCityField(){citiesForUf=[];cityInput.value="";cityInput.setCustomValidity("");cityInput.disabled=true;cityInput.placeholder="Selecione primeiro o estado";cityToggle.disabled=true;cityList.replaceChildren();closeCityList();cityStatus.textContent="Selecione um estado para carregar as cidades."}
+async function loadCities(uf){resetCityField();cityInput.placeholder="Carregando cidades...";cityStatus.textContent="Carregando cidades...";const data=await locationData;if(ufInput.value!==uf)return;if(!data||!data[uf]){cityStatus.textContent="Não foi possível carregar a lista de cidades. Recarregue a página e tente novamente.";return}citiesForUf=data[uf];cityInput.disabled=false;cityToggle.disabled=false;cityInput.placeholder="Digite ou escolha uma cidade";cityStatus.textContent=`${citiesForUf.length} cidades. Toque na seta para rolar ou digite para filtrar.`}
+function selectState(state){const changed=ufInput.value!==state.uf;stateInput.value=state.name;ufInput.value=state.uf;stateInput.setCustomValidity("");closeStateList();suppressStateFocus=true;stateInput.focus({preventScroll:true});suppressStateFocus=false;if(changed||cityInput.disabled)loadCities(state.uf)}
+function selectCity(city){cityInput.value=city;cityInput.setCustomValidity("");cityStatus.textContent=`${city} selecionada.`;closeCityList();suppressCityFocus=true;cityInput.focus({preventScroll:true});suppressCityFocus=false}
+function handleStateInput(){const raw=stateInput.value.trim(),query=normalize(raw),exact=states.find(state=>normalize(state.name)===query);if(exact){selectState(exact);return}if(ufInput.value){ufInput.value="";resetCityField()}stateInput.setCustomValidity(raw?"Escolha um estado da lista de sugestões.":"");showStates(raw)}
+function handleCityInput(){const raw=cityInput.value.trim(),query=normalize(raw),exact=citiesForUf.find(city=>normalize(city)===query);showCities(raw);if(exact){cityInput.value=exact;cityInput.setCustomValidity("");cityStatus.textContent=`${exact} selecionada.`}else if(raw){cityInput.setCustomValidity("Escolha uma cidade da lista de sugestões.")}else{cityInput.setCustomValidity("")}}
+stateInput.addEventListener("focus",()=>{if(!suppressStateFocus)showStates("")});stateInput.addEventListener("input",handleStateInput);
+cityInput.addEventListener("focus",()=>{if(!suppressCityFocus&&!cityInput.disabled)showCities("")});cityInput.addEventListener("input",handleCityInput);
+stateToggle.addEventListener("click",()=>{if(stateList.hidden){showStates("");stateInput.focus({preventScroll:true})}else closeStateList()});cityToggle.addEventListener("click",()=>{if(cityList.hidden){showCities("");cityInput.focus({preventScroll:true})}else closeCityList()});
+document.addEventListener("click",event=>{if(!stateCombo.contains(event.target))closeStateList();if(!cityCombo.contains(event.target))closeCityList()});
+function addComboKeyboard(input,list,close){input.addEventListener("keydown",event=>{if(event.key==="ArrowDown"&&!list.hidden){event.preventDefault();list.querySelector(".combo-option")?.focus()}else if(event.key==="Escape"&&!list.hidden){event.preventDefault();close()}});list.addEventListener("keydown",event=>{const options=[...list.querySelectorAll(".combo-option")],index=options.indexOf(document.activeElement);if(event.key==="ArrowDown"){event.preventDefault();options[Math.min(index+1,options.length-1)]?.focus()}else if(event.key==="ArrowUp"){event.preventDefault();if(index<=0)input.focus();else options[index-1]?.focus()}else if(event.key==="Escape"){event.preventDefault();close();input.focus()}})}
+addComboKeyboard(stateInput,stateList,closeStateList);addComboKeyboard(cityInput,cityList,closeCityList);
 const qtdSelect=document.getElementById("qtd"),ageFields=document.getElementById("age-fields"),addAgeButton=document.getElementById("add-age");
 function createAgeField(index,value=""){const label=document.createElement("label"),title=document.createElement("span"),select=document.createElement("select");label.className="age-person";title.textContent=`Pessoa ${index+1}`;select.name=`faixa_etaria_${index+1}`;select.required=true;select.add(new Option("Selecione a faixa etária",""));ageBands.forEach(band=>select.add(new Option(band,band)));select.value=value;label.append(title,select);return label}
 function renderAgeFields(){const values=[...ageFields.querySelectorAll("select")].map(select=>select.value),count=qtdSelect.value==="5 ou mais"?5:Number(qtdSelect.value);ageFields.replaceChildren(...Array.from({length:count},(_,index)=>createAgeField(index,values[index]||"")));addAgeButton.hidden=qtdSelect.value!=="5 ou mais"}
 qtdSelect.addEventListener("change",renderAgeFields);addAgeButton.addEventListener("click",()=>{const count=ageFields.querySelectorAll("select").length;const field=createAgeField(count);ageFields.append(field);field.querySelector("select").focus()});renderAgeFields();
-document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();if(cityInput.disabled||!citiesForUf.length){cityStatus.textContent="A lista de cidades ainda não está pronta. Tente novamente.";return}filterCities();if(!e.target.reportValidity())return;const d=Object.fromEntries(new FormData(e.target)),ages=[...ageFields.querySelectorAll("select")].map(select=>select.value),stateName=ufSelect.options[ufSelect.selectedIndex].textContent;const m=`Olá! Quero uma cotação de plano de saúde.\n\nNome: ${d.nome}\nEstado: ${stateName}\nCidade: ${cityInput.value}\nFaixas etárias: ${ages.join(", ")}\nPessoas: ${d.qtd}\nContratação: ${d.tipo}\nOperadora: ${d.op}`;window.open(wa(m),"_blank","noopener")});
+document.getElementById("f").addEventListener("submit",event=>{event.preventDefault();const state=states.find(item=>item.uf===ufInput.value);if(!state){stateInput.setCustomValidity("Escolha um estado da lista.");stateInput.reportValidity();return}if(cityInput.disabled||!citiesForUf.length){cityStatus.textContent="A lista de cidades ainda não está pronta. Tente novamente.";return}const city=citiesForUf.find(item=>normalize(item)===normalize(cityInput.value.trim()));if(!city){cityInput.setCustomValidity("Escolha uma cidade da lista deste estado.");cityInput.reportValidity();return}cityInput.value=city;cityInput.setCustomValidity("");if(!event.target.reportValidity())return;const data=Object.fromEntries(new FormData(event.target)),ages=[...ageFields.querySelectorAll("select")].map(select=>select.value),message=`Olá! Quero uma cotação de plano de saúde.\n\nNome: ${data.nome}\nEstado: ${state.name} (${state.uf})\nCidade: ${city}\nFaixas etárias: ${ages.join(", ")}\nPessoas: ${data.qtd}\nOperadora: ${data.op}`;window.open(wa(message),"_blank","noopener")});
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{threshold:.15});
 document.querySelectorAll(".ops,.feat,.steps,.revs").forEach(g=>[...g.children].forEach((c,i)=>c.style.transitionDelay=(i*110)+"ms"));
 document.querySelectorAll(".rv").forEach(el=>io.observe(el));
