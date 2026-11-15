@@ -3,8 +3,13 @@ import type { Database } from "@/integrations/supabase/types";
 
 // Publishable-key client for public review reads/inserts (RLS applies). Call only inside handlers.
 export function createPublicSupabase() {
-  const url = process.env["SUPABASE_URL"]!;
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  const url = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
+  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) {
+    throw new Error(
+      "Review storage requires VITE_SUPABASE_URL/SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY/SUPABASE_PUBLISHABLE_KEY.",
+    );
+  }
   return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     global: {
