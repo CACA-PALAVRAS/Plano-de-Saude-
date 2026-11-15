@@ -1,17 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { REVIEW_WORDS, STAR_LABELS, cleanName, type Stars } from "@/lib/review-words";
 import { submitReview } from "@/lib/reviews.functions";
 import { cn } from "@/lib/utils";
+
+const REVIEW_SUBMITTED_KEY = "talita-review-submitted:v1";
 
 export const Route = createFileRoute("/avaliar")({
   head: () => ({
     meta: [
       { title: "Avalie seu atendimento | Talita Mota, corretora de saúde" },
-      { name: "description", content: "Conte em poucos toques como foi seu atendimento com a corretora Talita Mota." },
+      {
+        name: "description",
+        content: "Conte em poucos toques como foi seu atendimento com a corretora Talita Mota.",
+      },
       { property: "og:title", content: "Como foi seu atendimento com a Talita?" },
-      { property: "og:description", content: "Deixe sua avaliação em poucos segundos: escolha as estrelas e uma palavra." },
+      {
+        property: "og:description",
+        content: "Deixe sua avaliação em poucos segundos: escolha as estrelas e uma palavra.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -32,7 +40,10 @@ function StarIcon({ filled }: { filled: boolean }) {
     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-full w-full">
       <path
         d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5L2.6 9.4l6.5-.8z"
-        className={cn("transition-colors duration-300", filled ? "fill-star stroke-star" : "fill-transparent stroke-muted-foreground/50")}
+        className={cn(
+          "transition-colors duration-300",
+          filled ? "fill-star stroke-star" : "fill-transparent stroke-muted-foreground/50",
+        )}
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
@@ -48,6 +59,18 @@ function ReviewPage() {
   const [word, setWord] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [touched, setTouched] = useState(false);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [checkingDevice, setCheckingDevice] = useState(true);
+
+  useEffect(() => {
+    try {
+      setAlreadySubmitted(window.localStorage.getItem(REVIEW_SUBMITTED_KEY) === "1");
+    } catch {
+      setAlreadySubmitted(false);
+    } finally {
+      setCheckingDevice(false);
+    }
+  }, []);
 
   const nameOk = cleanName(name).length >= 2;
   const ready = nameOk && stars !== null && word !== null;
@@ -60,10 +83,51 @@ function ReviewPage() {
     setStatus("sending");
     try {
       const res = await send({ data: { name: cleanName(name), stars, word } });
+      if (res.ok) {
+        try {
+          window.localStorage.setItem(REVIEW_SUBMITTED_KEY, "1");
+        } catch {
+          // A blocked localStorage should not hide a successful review.
+        }
+      }
       setStatus(res.ok ? "done" : "error");
     } catch {
       setStatus("error");
     }
+  }
+
+  if (checkingDevice) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
+        <p className="text-center text-muted-foreground" aria-live="polite">
+          Verificando este dispositivo...
+        </p>
+      </main>
+    );
+  }
+
+  if (alreadySubmitted) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
+        <div className="max-w-md text-center animate-rise">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary text-4xl text-primary-foreground">
+            ✓
+          </div>
+          <h1 className="font-serif text-4xl font-black leading-tight text-secondary">
+            Você já fez sua avaliação.
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Obrigada por participar! Este navegador já enviou uma avaliação.
+          </p>
+          <a
+            href="/#depo"
+            className="mt-8 inline-flex rounded-full bg-primary px-7 py-4 font-bold text-primary-foreground transition-transform hover:-translate-y-1"
+          >
+            Ver avaliações
+          </a>
+        </div>
+      </main>
+    );
   }
 
   if (status === "done") {
@@ -76,12 +140,14 @@ function ReviewPage() {
           <h1 className="font-serif text-4xl font-black leading-tight text-secondary">
             Obrigada, {cleanName(name).split(" ")[0]}!
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground">Sua avaliação já aparece no site e me ajuda muito.</p>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Sua avaliação já aparece no site e me ajuda muito.
+          </p>
           <a
             href="/#depo"
             className="mt-8 inline-flex rounded-full bg-primary px-7 py-4 font-bold text-primary-foreground transition-transform hover:-translate-y-1"
           >
-            Ver no site
+            Ver avaliações
           </a>
         </div>
       </main>
@@ -95,16 +161,25 @@ function ReviewPage() {
           Corretora de Saúde
         </a>
 
-        <h1 className="mt-10 font-serif text-5xl font-black leading-[0.95] tracking-tight text-secondary animate-rise">
+        <h1 className="mt-10 font-serif text-4xl font-black leading-[0.95] tracking-tight text-secondary animate-rise sm:text-5xl">
           Como foi seu <span className="text-primary">atendimento?</span>
         </h1>
         <p className="mt-4 text-lg text-muted-foreground animate-rise [animation-delay:120ms]">
           Leva menos de um minuto. Obrigada por me ajudar!
         </p>
+        <a
+          href="/#depo"
+          className="mt-5 inline-flex rounded-full border-2 border-primary px-5 py-3 font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          Ver avaliações
+        </a>
 
         <form onSubmit={onSubmit} className="mt-10 space-y-10" noValidate>
           <section className="animate-rise [animation-delay:200ms]">
-            <label htmlFor="nome" className="mb-2 block text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            <label
+              htmlFor="nome"
+              className="mb-2 block text-sm font-bold uppercase tracking-widest text-muted-foreground"
+            >
               1. Seu nome
             </label>
             <input
@@ -116,12 +191,21 @@ function ReviewPage() {
               placeholder="Ex.: Maria Souza"
               className="w-full rounded-2xl border-2 border-input bg-card px-5 py-4 text-lg text-foreground outline-none transition-colors focus:border-primary"
             />
-            {touched && !nameOk && <p className="mt-2 text-sm font-medium text-destructive">Digite seu nome.</p>}
+            {touched && !nameOk && (
+              <p className="mt-2 text-sm font-medium text-destructive">Digite seu nome.</p>
+            )}
           </section>
 
           <section className="animate-rise [animation-delay:280ms]">
-            <p className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground">2. Sua nota</p>
-            <div role="radiogroup" aria-label="Nota de 1 a 5 estrelas" className="flex gap-2" onMouseLeave={() => setHover(null)}>
+            <p className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              2. Sua nota
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="Nota de 1 a 5 estrelas"
+              className="flex gap-2"
+              onMouseLeave={() => setHover(null)}
+            >
               {([1, 2, 3, 4, 5] as Stars[]).map((n) => (
                 <button
                   key={n}
@@ -147,7 +231,11 @@ function ReviewPage() {
             <p className="mt-3 h-7 font-serif text-2xl font-black text-primary" aria-live="polite">
               {shown ? STAR_LABELS[shown] : ""}
             </p>
-            {touched && stars === null && <p className="text-sm font-medium text-destructive">Toque nas estrelas para dar sua nota.</p>}
+            {touched && stars === null && (
+              <p className="text-sm font-medium text-destructive">
+                Toque nas estrelas para dar sua nota.
+              </p>
+            )}
           </section>
 
           {stars !== null && (
@@ -155,7 +243,11 @@ function ReviewPage() {
               <p className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 3. Uma palavra que resume
               </p>
-              <div role="radiogroup" aria-label="Palavra que resume o atendimento" className="flex flex-wrap gap-2.5">
+              <div
+                role="radiogroup"
+                aria-label="Palavra que resume o atendimento"
+                className="flex flex-wrap gap-2.5"
+              >
                 {REVIEW_WORDS[stars].map((w, i) => (
                   <button
                     key={w}
@@ -175,7 +267,9 @@ function ReviewPage() {
                   </button>
                 ))}
               </div>
-              {touched && word === null && <p className="mt-2 text-sm font-medium text-destructive">Escolha uma palavra.</p>}
+              {touched && word === null && (
+                <p className="mt-2 text-sm font-medium text-destructive">Escolha uma palavra.</p>
+              )}
             </section>
           )}
 
