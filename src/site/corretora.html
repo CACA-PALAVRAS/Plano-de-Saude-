@@ -98,6 +98,13 @@ form{display:grid;gap:14px;grid-template-columns:1fr}
 label{display:grid;gap:6px;font-weight:500;font-size:.95rem}
 input,select{font:400 1rem var(--sans);padding:14px 16px;border-radius:14px;border:2px solid transparent;background:#F7F0E3;color:#17212C;width:100%}
 input:focus,select:focus{border-color:#F2B8CB;outline:0}
+fieldset.age-group{grid-column:1/-1;display:grid;gap:10px;border:0;margin:0;padding:0;min-width:0}
+fieldset.age-group legend{font-weight:600;padding:0}
+.age-fields{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:700px){.age-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.field-hint{font-size:.82rem;font-weight:400;opacity:.8;line-height:1.4}
+.age-add{justify-self:start;border:1px solid #F2B8CB;background:transparent;color:#F7F0E3;padding:10px 14px;border-radius:12px;font:600 .95rem var(--sans);cursor:pointer}
+.age-add[hidden]{display:none}
 .quote .btn{background:#F7F0E3;color:#641D35;justify-self:start}
 /* reviews */
 .revsum{font-size:1.15rem;margin:-10px 0 22px}
@@ -186,10 +193,18 @@ h2.rv{transform:translateX(-30px)}
 <h2>Peça sua cotação.</h2>
 <form id="f">
 <label>Nome<input name="nome" required autocomplete="name"></label>
-<label>WhatsApp<input name="zap" type="tel" inputmode="tel" required autocomplete="tel" placeholder="(91) 90000-0000"></label>
-<label>Cidade<input name="cidade" required autocomplete="address-level2"></label>
-<label>Idade ou faixa etária<input name="idade" required placeholder="Ex.: 35 ou 29, 31 e 4"></label>
-<label>Quantas pessoas<select name="qtd"><option>1</option><option>2</option><option>3</option><option>4</option><option>5 ou mais</option></select></label>
+<label>Estado<select name="uf" id="uf" required autocomplete="address-level1">
+<option value="">Selecione o estado</option>
+<option value="AC">Acre (AC)</option><option value="AL">Alagoas (AL)</option><option value="AP">Amapá (AP)</option><option value="AM">Amazonas (AM)</option><option value="BA">Bahia (BA)</option><option value="CE">Ceará (CE)</option><option value="DF">Distrito Federal (DF)</option><option value="ES">Espírito Santo (ES)</option><option value="GO">Goiás (GO)</option><option value="MA">Maranhão (MA)</option><option value="MT">Mato Grosso (MT)</option><option value="MS">Mato Grosso do Sul (MS)</option><option value="MG">Minas Gerais (MG)</option><option value="PA">Pará (PA)</option><option value="PB">Paraíba (PB)</option><option value="PR">Paraná (PR)</option><option value="PE">Pernambuco (PE)</option><option value="PI">Piauí (PI)</option><option value="RJ">Rio de Janeiro (RJ)</option><option value="RN">Rio Grande do Norte (RN)</option><option value="RS">Rio Grande do Sul (RS)</option><option value="RO">Rondônia (RO)</option><option value="RR">Roraima (RR)</option><option value="SC">Santa Catarina (SC)</option><option value="SP">São Paulo (SP)</option><option value="SE">Sergipe (SE)</option><option value="TO">Tocantins (TO)</option>
+</select></label>
+<label>Cidade<input name="cidade" id="cidade" type="search" required autocomplete="address-level2" list="cidades-list" placeholder="Escolha o estado primeiro" disabled aria-describedby="cidade-status"><datalist id="cidades-list"></datalist><span id="cidade-status" class="field-hint" aria-live="polite">Selecione um estado para ver as cidades.</span></label>
+<label>Quantas pessoas<select name="qtd" id="qtd" required><option>1</option><option>2</option><option>3</option><option>4</option><option>5 ou mais</option></select></label>
+<fieldset class="full age-group">
+<legend>Faixa etária de cada pessoa</legend>
+<div id="age-fields" class="age-fields"></div>
+<button class="age-add" id="add-age" type="button" hidden>Adicionar outra pessoa</button>
+<p class="field-hint">Selecione a faixa etária de cada pessoa. Para 5 ou mais, você pode adicionar outras.</p>
+</fieldset>
 <label>Tipo de contratação<select name="tipo"><option>Individual ou familiar</option><option>Empresarial (CNPJ)</option></select></label>
 <label class="full">Operadora de interesse<select name="op" id="op"><option>Hapvida</option><option>Bradesco Saúde</option><option>SulAmérica</option><option>Unimed</option><option>Hospital Adventista</option><option>Hospital Amazônia</option><option>Outras</option><option selected>Quero comparar</option></select></label>
 <button class="btn full" type="submit">Enviar pelo WhatsApp</button>
@@ -239,9 +254,20 @@ const NUM="5591998307032",wa=t=>"https://wa.me/"+NUM+"?text="+encodeURIComponent
 document.querySelectorAll("[data-wa]").forEach(a=>{if(a.classList.contains("fab")||a.textContent.includes("WhatsApp")){a.href=wa("Olá! Vim pelo site e quero uma cotação de plano de saúde.");a.target="_blank";a.rel="noopener"}});
 document.querySelectorAll("[data-pick]").forEach(a=>a.addEventListener("click",()=>{document.getElementById("op").value=a.dataset.pick}));
 document.getElementById("priv").addEventListener("click",e=>e.preventDefault());
-document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));
-const m=`Olá! Quero uma cotação de plano de saúde.\n\nNome: ${d.nome}\nWhatsApp: ${d.zap}\nCidade: ${d.cidade}\nIdade/faixa: ${d.idade}\nPessoas: ${d.qtd}\nContratação: ${d.tipo}\nOperadora: ${d.op}`;
-window.open(wa(m),"_blank","noopener")});
+// Faixas etárias usadas pela ANS para contratos celebrados a partir de 2004.
+const ageBands=["0 a 18 anos","19 a 23 anos","24 a 28 anos","29 a 33 anos","34 a 38 anos","39 a 43 anos","44 a 48 anos","49 a 53 anos","54 a 58 anos","59 anos ou mais"];
+const ufSelect=document.getElementById("uf"),cityInput=document.getElementById("cidade"),cityOptions=document.getElementById("cidades-list"),cityStatus=document.getElementById("cidade-status");
+const locationData=fetch("/municipios-por-uf.json",{cache:"force-cache"}).then(r=>{if(!r.ok)throw new Error("Lista de cidades indisponível");return r.json()}).then(data=>data.cidadesPorUf).catch(error=>{console.error("municipalities list failed",error);return null});
+let citiesForUf=[];
+const normalizeCity=value=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
+async function loadCities(){const uf=ufSelect.value;cityInput.value="";cityInput.setCustomValidity("");cityOptions.replaceChildren();citiesForUf=[];cityInput.disabled=true;if(!uf){cityInput.placeholder="Escolha o estado primeiro";cityStatus.textContent="Selecione um estado para ver as cidades.";return}cityInput.placeholder="Carregando cidades...";cityStatus.textContent="Carregando cidades...";const data=await locationData;if(ufSelect.value!==uf)return;if(!data||!data[uf]){cityStatus.textContent="Não foi possível carregar a lista de cidades. Recarregue a página e tente novamente.";return}citiesForUf=data[uf];cityInput.disabled=false;cityInput.placeholder="Digite para buscar";cityStatus.textContent=`${citiesForUf.length} cidades disponíveis. Digite para filtrar.`}
+function filterCities(){cityOptions.replaceChildren();const raw=cityInput.value.trim();cityInput.setCustomValidity("");if(!raw){cityStatus.textContent=citiesForUf.length?`${citiesForUf.length} cidades disponíveis. Digite para filtrar.`:"Selecione um estado para ver as cidades.";return}const query=normalizeCity(raw),exact=citiesForUf.find(city=>normalizeCity(city)===query),matches=citiesForUf.filter(city=>normalizeCity(city).startsWith(query)).slice(0,30);matches.forEach(city=>{const option=document.createElement("option");option.value=city;cityOptions.append(option)});if(exact){cityInput.value=exact;cityStatus.textContent=`${exact} selecionada.`}else if(matches.length){cityInput.setCustomValidity("Escolha uma cidade da lista de sugestões.");cityStatus.textContent=`${matches.length} sugestões começando com “${raw}”. Toque em uma cidade da lista.`}else{cityInput.setCustomValidity("Nenhuma cidade encontrada nesse estado. Confira a busca.");cityStatus.textContent="Nenhuma cidade encontrada nesse estado."}}
+ufSelect.addEventListener("change",loadCities);cityInput.addEventListener("input",filterCities);cityInput.addEventListener("change",filterCities);
+const qtdSelect=document.getElementById("qtd"),ageFields=document.getElementById("age-fields"),addAgeButton=document.getElementById("add-age");
+function createAgeField(index,value=""){const label=document.createElement("label"),title=document.createElement("span"),select=document.createElement("select");label.className="age-person";title.textContent=`Pessoa ${index+1}`;select.name=`faixa_etaria_${index+1}`;select.required=true;select.add(new Option("Selecione a faixa etária",""));ageBands.forEach(band=>select.add(new Option(band,band)));select.value=value;label.append(title,select);return label}
+function renderAgeFields(){const values=[...ageFields.querySelectorAll("select")].map(select=>select.value),count=qtdSelect.value==="5 ou mais"?5:Number(qtdSelect.value);ageFields.replaceChildren(...Array.from({length:count},(_,index)=>createAgeField(index,values[index]||"")));addAgeButton.hidden=qtdSelect.value!=="5 ou mais"}
+qtdSelect.addEventListener("change",renderAgeFields);addAgeButton.addEventListener("click",()=>{const count=ageFields.querySelectorAll("select").length;const field=createAgeField(count);ageFields.append(field);field.querySelector("select").focus()});renderAgeFields();
+document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();if(cityInput.disabled||!citiesForUf.length){cityStatus.textContent="A lista de cidades ainda não está pronta. Tente novamente.";return}filterCities();if(!e.target.reportValidity())return;const d=Object.fromEntries(new FormData(e.target)),ages=[...ageFields.querySelectorAll("select")].map(select=>select.value),stateName=ufSelect.options[ufSelect.selectedIndex].textContent;const m=`Olá! Quero uma cotação de plano de saúde.\n\nNome: ${d.nome}\nEstado: ${stateName}\nCidade: ${cityInput.value}\nFaixas etárias: ${ages.join(", ")}\nPessoas: ${d.qtd}\nContratação: ${d.tipo}\nOperadora: ${d.op}`;window.open(wa(m),"_blank","noopener")});
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}}),{threshold:.15});
 document.querySelectorAll(".ops,.feat,.steps,.revs").forEach(g=>[...g.children].forEach((c,i)=>c.style.transitionDelay=(i*110)+"ms"));
 document.querySelectorAll(".rv").forEach(el=>io.observe(el));
