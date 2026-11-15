@@ -84,7 +84,7 @@ nav .btn{padding:10px 20px;font-size:.9rem}
 .op{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:30px}
 .op:nth-child(2){border-radius:28px 28px 28px 120px}
 .op:nth-child(3){border-radius:120px 28px 28px 28px}
-.op h3{font-size:2rem;margin-bottom:10px}
+.op h3{font-size:2rem;margin-bottom:10px;display:flex;align-items:center;gap:.42em;flex-wrap:wrap}.op-logo{width:1.05em;height:1.05em;object-fit:contain;flex:0 0 auto}
 .op a{display:inline-block;margin-top:16px;font-weight:700;color:var(--wine)}
 :root[data-theme="dark"] .op a{color:#F2B8CB}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .op a{color:#F2B8CB}}
@@ -193,8 +193,8 @@ h2.rv{transform:translateX(-30px)}
 <section id="planos" style="padding-top:0"><div class="wrap">
 <h2 class="rv">Operadoras que eu trabalho.</h2>
 <div class="ops">
-<div class="op rv"><h3>Hapvida</h3><p>Planos para pessoas, famílias e empresas. Peça a cotação para ver as opções disponíveis na sua cidade.</p><a href="#cotacao" data-pick="Hapvida">Cotar Hapvida</a></div>
-<div class="op rv"><h3>Bradesco Saúde</h3><p>Opções de diferentes modalidades. Eu explico as diferenças e indico a que cabe no seu perfil.</p><a href="#cotacao" data-pick="Bradesco Saúde">Cotar Bradesco</a></div>
+<div class="op rv"><h3><img class="op-logo" src="/logos/hapvida.png" alt="" aria-hidden="true" width="128" height="128" loading="lazy"><span>Hapvida</span></h3><p>Planos para pessoas, famílias e empresas. Peça a cotação para ver as opções disponíveis na sua cidade.</p><a href="#cotacao" data-pick="Hapvida">Cotar Hapvida</a></div>
+<div class="op rv"><h3><img class="op-logo" src="/logos/bradesco.png" alt="" aria-hidden="true" width="128" height="128" loading="lazy"><span>Bradesco Saúde</span></h3><p>Opções de diferentes modalidades. Eu explico as diferenças e indico a que cabe no seu perfil.</p><a href="#cotacao" data-pick="Bradesco Saúde">Cotar Bradesco</a></div>
 <div class="op rv"><h3>E outras</h3><p>Trabalho com várias operadoras. Me diga o que você precisa e eu busco as alternativas.</p><a href="#cotacao" data-pick="Outras">Perguntar</a></div>
 </div>
 <p class="note">Valores, coberturas e redes variam por cidade, idade e modalidade. Confirme tudo na cotação.</p>
